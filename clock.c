@@ -138,6 +138,7 @@ ISR(TIMER1_COMPA_vect) {
 		writedata(secsTens + '0');
 		writedata(secsOnes + '0');
 		displayTemperature();
+		moveto(1,15);
 	}
 }
 

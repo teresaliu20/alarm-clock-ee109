@@ -28,7 +28,7 @@ void displayTemperature() {
 
 	stringout("  Out: ");
 
-	moveto(0,0);
+	moveto(1,15);
 }
 
 unsigned int computeFahrenheit(unsigned int* c) {

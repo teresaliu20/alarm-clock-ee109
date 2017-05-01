@@ -101,10 +101,6 @@ int main () {
 		// save current temperature
 		unsigned int curr = computeFahrenheit(localTemp);
 
-		// move cursor to end of screen when displaying time
-		if (state == 0) {
-			moveto(1,15);
-		}
 		// call routine to send characters to remote unit if tempurature changed
 		if (state == 0 && curr != prev) {
 			unsigned int data = computeFahrenheit(localTemp);
