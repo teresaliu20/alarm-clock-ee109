@@ -27,3 +27,7 @@ char* days[7];
 // state 4: alarm min
 volatile int state;
 volatile int buzzCounter;
+
+volatile char snooze;
+volatile int snoozeCount;
+volatile char alarmOn;

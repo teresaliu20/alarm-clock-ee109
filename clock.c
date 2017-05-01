@@ -5,6 +5,7 @@
 #include <avr/eeprom.h>
 #include "lcd.h"
 #include "clock.h"
+#include "temp.h"
 
 void init_clock() {
 	hoursTens = 0;
@@ -28,6 +29,10 @@ void init_clock() {
 	days[4] = "Thurs.  ";
 	days[5] = "Fri.    ";
 	days[6] = "Sat.    ";
+
+	snooze = 0;
+	snoozeCount = 0;
+	alarmOn = 0;
 }
 
 void init_timer1(unsigned short m) {
@@ -108,6 +113,16 @@ void updateTime() {
 
 
 ISR(TIMER1_COMPA_vect) {
+	if (snooze == 1) {
+		snoozeCount++;
+		// if 30s elapsed since snooze button pressed
+		if (snoozeCount == 30) {
+			// turn buzzer timer back on
+			TCCR0B |= (1 << CS11) | (1 << CS10);
+			snooze = 0;
+			snoozeCount = 0;
+		}
+	}
    // updates every 1s
 	updateTime();
 	if (state == 0) {
@@ -122,18 +137,19 @@ ISR(TIMER1_COMPA_vect) {
 		writedata(':');
 		writedata(secsTens + '0');
 		writedata(secsOnes + '0');
+		displayTemperature();
 	}
 }
 
 ISR(TIMER0_COMPA_vect) {
 	// turn buzzer on by flipping bit
 	buzzCounter++;
-	if (buzzCounter > 0) {
-		PORTB ^= (1 << PB5);
-	}
+	PORTB ^= (1 << PB5);
 	if (buzzCounter == 5000) {
 		// turn off timer
+		buzzCounter = 0;
 		TCCR0B &= ~((1 << CS11) | (1 << CS10));
+		alarmOn = 0;
 		PORTB &= ~(1 << PB5);
 	}
 }

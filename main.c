@@ -79,29 +79,53 @@ int main () {
 	// set PORTB bit 5 (D13) to output for buzzer
 	DDRB |= (1 << PB5);
 
-	ds1631_temp(temp);
+	// set Pxx to output to enable for tri-state buffer
+	DDRC |= (1 << PC1);
+
+	// clear tri-state to output 0 to enable the buffer
+	PORTC &= ~(1 << PC1);
+
+	// set PORTB bit 3 and bit 4 to output for LEDs
+	DDRB |= (1 << PB4) | (1 << PB3);
+	// PB3 (D11) = red LED
+	// PB4 (D12) = green LED
+
+	// display initial temperature
+	ds1631_temp(localTemp);
 	displayTemperature();
 
 	while (1) {
 
 		// save previous temperature
-		unsigned int prev = computeFahrenheit(temp);
-		ds1631_temp(temp);
+		unsigned int prev = computeFahrenheit(localTemp);
+		ds1631_temp(localTemp);
 		// save current temperature
-		unsigned int curr = computeFahrenheit(temp);
+		unsigned int curr = computeFahrenheit(localTemp);
 
 		// call routine to send characters to remote unit if tempurature changed
 		if (curr != prev) {
-			unsigned int data = computeFahrenheit(temp);
+			unsigned int data = computeFahrenheit(localTemp);
 			displayTemperature();
 			transmitData(data);
 		}
 		// check valid data flag for incoming data
 		if (validFlag) {
-			// char num1, num2, num3;
-			// sscanf(buffer, "%hhd %hhd %hhd", &num1, &num2, &num3);
+			moveto(1,13);
+			writedata(buffer[1] + '0');
+			writedata(buffer[2] + '0');
 			validFlag = 0;
 		}
+		// if remote temperature is higher, turn on red LED
+		if (computeFahrenheit(localTemp) < bufferToFahrenheit(buffer)) {
+			PORTB |= (1 << PB3);
+			PORTB &= ~(1 << PB4);
+		}
+		// if local temperature is higher, turn on green LED
+		else if (computeFahrenheit(localTemp) >= bufferToFahrenheit(buffer)) {
+			PORTB |= (1 << PB4);
+			PORTB &= ~(1 << PB3);
+		}
+
 		// if set alarm time equals current time, generate alarm
 		if (state == 0 && 
 			alarmHoursTens == hoursTens &&
@@ -111,20 +135,22 @@ int main () {
 			secsOnes == 1 &&
 			secsTens == 0) {
 
-			// set prescalar to 64 to turn on buzzer
+			// set prescalar to 64 to turn on buzzer timer
 			TCCR0B |= (1 << CS11) | (1 << CS10);
+			alarmOn = 1;
 		}
-		if (!(PINC & (1 << PC2))) {
-			buzzCounter = -30000;
+		if (alarmOn && !(PINC & (1 << PC2))) {
+			// set snooze to true
+			snooze = 1;
+			// turn buzzer timer off
+			TCCR0B &= ~((1 << CS11) | (1 << CS10));
+			alarmOn = 0;
 			PORTB &= ~(1 << PB5);
 		}
-
-
 	}
 }
 
 ISR(PCINT1_vect) {
-
 	// detect button presses
 	if (!(PINC & (1 << PC3))) {
 		state++;
