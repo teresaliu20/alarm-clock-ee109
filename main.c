@@ -95,21 +95,24 @@ int main () {
 	displayTemperature();
 
 	while (1) {
-
 		// save previous temperature
 		unsigned int prev = computeFahrenheit(localTemp);
 		ds1631_temp(localTemp);
 		// save current temperature
 		unsigned int curr = computeFahrenheit(localTemp);
 
+		// move cursor to end of screen when displaying time
+		if (state == 0) {
+			moveto(1,15);
+		}
 		// call routine to send characters to remote unit if tempurature changed
-		if (curr != prev) {
+		if (state == 0 && curr != prev) {
 			unsigned int data = computeFahrenheit(localTemp);
 			displayTemperature();
 			transmitData(data);
 		}
 		// check valid data flag for incoming data
-		if (validFlag) {
+		if (state == 0 && validFlag) {
 			moveto(1,13);
 			writedata(buffer[1] + '0');
 			writedata(buffer[2] + '0');
@@ -146,6 +149,7 @@ int main () {
 			TCCR0B &= ~((1 << CS11) | (1 << CS10));
 			alarmOn = 0;
 			PORTB &= ~(1 << PB5);
+			buzzCounter = 0;
 		}
 	}
 }
@@ -174,12 +178,12 @@ ISR(PCINT1_vect) {
 			writedata(minsOnes + '0');
 		}
 		else if (state == 4) {
-			stringout("Alarm hour: ");
+			stringout("Alarm Hour: ");
 			writedata(alarmHoursTens + '0');
 			writedata(alarmHoursOnes + '0');
 		}
 		else if (state == 5) {
-			stringout("Alarm min: ");
+			stringout("Alarm Min: ");
 			writedata(alarmMinsTens + '0');
 			writedata(alarmMinsOnes + '0');
 		}
