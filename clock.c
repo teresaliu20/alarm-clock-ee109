@@ -7,7 +7,7 @@
 #include "clock.h"
 
 void init_clock() {
-	hoursTens;
+	hoursTens = 0;
 	hoursOnes = 0;
 	minsTens = 0;
 	minsOnes = 0;
@@ -21,13 +21,13 @@ void init_clock() {
 
 	daysIndex = 0;
 
-	days[0] = "Sun. ";
-	days[1] = "Mon. ";
-	days[2] = "Tues. ";
-	days[3] = "Wed. ";
-	days[4] = "Thurs. ";
-	days[5] = "Fri. ";
-	days[6] = "Sat. ";
+	days[0] = "Sun.    ";
+	days[1] = "Mon.    ";
+	days[2] = "Tues.   ";
+	days[3] = "Wed.    ";
+	days[4] = "Thurs.  ";
+	days[5] = "Fri.    ";
+	days[6] = "Sat.    ";
 }
 
 void init_timer1(unsigned short m) {
@@ -57,7 +57,7 @@ void init_timer0(unsigned short m) {
 	TIMSK0 |= (1 << OCIE0A);
 
 	// load 8-bit counter modulus
-	OCR1AH = m;
+	OCR0A = m;
 
 	buzzCounter = 0;
 }
@@ -112,7 +112,7 @@ ISR(TIMER1_COMPA_vect) {
 	updateTime();
 	if (state == 0) {
 		// updates time and writes every 0.1s
-		writecommand(1);
+		moveto(0,0);
 		stringout(days[(int)daysIndex]);
 		writedata(hoursTens + '0');
 		writedata(hoursOnes + '0');
@@ -127,10 +127,14 @@ ISR(TIMER1_COMPA_vect) {
 
 ISR(TIMER0_COMPA_vect) {
 	// turn buzzer on by flipping bit
-	PORTB ^= (1 << PB3);
 	buzzCounter++;
+	if (buzzCounter > 0) {
+		PORTB ^= (1 << PB5);
+	}
 	if (buzzCounter == 5000) {
-		TCCR0B |= (0 << CS12) | (0 << CS10);
+		// turn off timer
+		TCCR0B &= ~((1 << CS11) | (1 << CS10));
+		PORTB &= ~(1 << PB5);
 	}
 }
 

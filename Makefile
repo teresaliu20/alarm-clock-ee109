@@ -1,7 +1,7 @@
 DEVICE     = atmega328p
 CLOCK      = 16000000
 PROGRAMMER = -c arduino -b 115200 -P /dev/tty.usbmodem*
-OBJECTS    = main.o clock.o encoder.o lcd.o
+OBJECTS    = main.o clock.o encoder.o lcd.o temp.o ds1631.o serial.o
 FUSES      = -U hfuse:w:0xde:m -U lfuse:w:0xff:m -U efuse:w:0x05:m
 
 # Tune the lines below only if you know what you are doing:

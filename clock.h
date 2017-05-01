@@ -26,5 +26,4 @@ char* days[7];
 // state 4: alarm hour
 // state 4: alarm min
 volatile int state;
-
-int buzzCounter;
+volatile int buzzCounter;

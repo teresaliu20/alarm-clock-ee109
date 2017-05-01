@@ -105,6 +105,7 @@ ISR(PCINT2_vect) {
 			writecommand(1);
 			stringout("Day: ");
 			stringout(days[(int)daysIndex]);
+
 		}
 		else if (state == 2) { // change hour
 			if (clockwise) {
@@ -176,7 +177,7 @@ ISR(PCINT2_vect) {
 			}
 			else {
 				alarmHoursOnes--;
-				if (hoursOnes < 0 && alarmHoursTens == 0) {
+				if (alarmHoursOnes < 0 && alarmHoursTens == 0) {
 					alarmHoursTens = 2;
 					alarmHoursOnes = 4;
 				}
